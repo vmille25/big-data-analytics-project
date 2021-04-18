@@ -73,6 +73,7 @@ namespace big_data_project
         }
         public void genChart()
         {
+            List<(double, double)> allSectorsData = new List<(double, double)>();
             List<(double, double)> industrialData = new List<(double, double)>();
             List<(double, double)> healthCareData = new List<(double, double)>();
             List<(double, double)> informationTechData = new List<(double, double)>();
@@ -84,6 +85,12 @@ namespace big_data_project
             List<(double, double)> realEstateData = new List<(double, double)>();
             List<(double, double)> consumerStaplesData = new List<(double, double)>();
             List<(double, double)> energyData = new List<(double, double)>();
+
+            for (int i = 0; i < plottableData.Count; i++)
+            {
+                (double, double) temp = (plottableData[i].Item1, plottableData[i].Item2);
+                allSectorsData.Add(temp);
+            }
 
             for (int i = 0; i < plottableData.Count; i++)
             {
@@ -291,7 +298,7 @@ namespace big_data_project
 
             chart.ResetAutoValues();
             chart.Titles.Clear();
-            chart.Titles.Add($"Earnings Surprise VS. Price Change");
+            chart.Titles.Add($"Earnings Surprise VS. Price Change (All Sectors)");
             chart.ChartAreas[0].AxisX.Title = "Earnings Surprise (%)";
             chart.ChartAreas[0].AxisY.Title = "Price Change (%)";
             chart.ChartAreas[0].AxisX.MajorGrid.LineColor = System.Drawing.Color.LightGray;
@@ -306,8 +313,60 @@ namespace big_data_project
             chart.BackColor = System.Drawing.Color.Transparent;
             CA.BackColor = System.Drawing.Color.Transparent;
 
-            chart.SaveImage(@"C:\Users\vdmil\OneDrive\Documents\KSU_SPRING_2021\Big Data Analytics\project_code\image\produced_chart.png", ChartImageFormat.Png);
-            Console.WriteLine("All Done :)))");
+
+            chart.SaveImage(@"C:\Users\vdmil\OneDrive\Documents\KSU_SPRING_2021\Big Data Analytics\project_code\image\no_top_k.png", ChartImageFormat.Png);
+            Console.WriteLine("All Sectors Chart Produced :)");
+
+            Console.WriteLine("Unfiltered Data, Pearsons Correlation Coefficient is shown below:");
+            pearsonsCorrelationCoeff(allSectorsData, "All Sectors");
+            pearsonsCorrelationCoeff(industrialData, "Industrial Sector");
+            pearsonsCorrelationCoeff(healthCareData, "Health Care Sector");
+            pearsonsCorrelationCoeff(informationTechData, "Information Technology Sector");
+            pearsonsCorrelationCoeff(commServicesData, "Communication Services Sector");
+            pearsonsCorrelationCoeff(consumerDiscData, "Consumer Discretionary Sector");
+            pearsonsCorrelationCoeff(utilitiesData, "Utilities Sector");
+            pearsonsCorrelationCoeff(financialsData, "Financial Sector");
+            pearsonsCorrelationCoeff(materialsData, "Materials Sector");
+            pearsonsCorrelationCoeff(realEstateData, "Real Estate Sector");
+            pearsonsCorrelationCoeff(consumerStaplesData, "Consumer Staples Sector");
+            pearsonsCorrelationCoeff(energyData, "Energy Sector");
+        }
+
+        public void pearsonsCorrelationCoeff(List<(double, double)>workingData, string sectorString)
+        {
+            double sumSurprise = 0;
+            double avgSurprise = 0;
+            for (int i = 0; i < workingData.Count; i++)
+            {
+                sumSurprise += workingData[i].Item1;
+            }
+            avgSurprise = sumSurprise / workingData.Count;
+
+            double sumPriceChange = 0;
+            double avgPriceChange = 0;
+            for (int i = 0; i < workingData.Count; i++)
+            {
+                sumPriceChange += workingData[i].Item2;
+            }
+            avgPriceChange = sumPriceChange / workingData.Count;
+
+            double numerator = 0;
+            double sumDenomSurprise = 0;
+            double sumDenomPrice = 0;
+            double denominator = 0;
+            double pearsonsCoeff = 0;
+            for (int i = 0; i < workingData.Count; i++)
+            {
+                numerator += (workingData[i].Item1 - avgSurprise) * (workingData[i].Item2 - avgPriceChange);
+            }
+            for (int i = 0; i < workingData.Count; i++)
+            {
+                sumDenomSurprise += Math.Pow((workingData[i].Item1 - avgSurprise), 2);
+                sumDenomPrice += Math.Pow((workingData[i].Item2 - avgPriceChange), 2);
+            }
+            denominator = Math.Sqrt((sumDenomSurprise * sumDenomPrice));
+            pearsonsCoeff = numerator / denominator;
+            Console.WriteLine("Pearsons Coefficient for " + sectorString + " is: " + pearsonsCoeff.ToString());
         }
     }
 }
